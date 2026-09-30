@@ -1,0 +1,8 @@
+# Core hiện tại: crawler + retrieval lexical chỉ dùng thư viện chuẩn Python,
+# không có dependency ngoài nào ở thời điểm import từ DataMining (2026-09-30).
+
+pytest
+
+# Sẽ thêm khi implementation plan yêu cầu, ví dụ:
+# pypdf / pdfplumber   — trích text PDF cho crawler (xem docs/specs/2026-08-19-...)
+# (baseline embedding nếu quyết định so sánh với BM25 — xem "Điểm cần rà soát lại")

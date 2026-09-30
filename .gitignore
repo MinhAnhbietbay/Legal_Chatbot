@@ -1,0 +1,25 @@
+# Môi trường ảo
+venv/
+.venv/
+.env/
+.env
+
+# Thư viện máy và cache
+*.so
+*.dll
+*.py[cod]
+__pycache__/
+
+# Cấu hình IDE
+.vscode/
+.idea/
+
+/data/
+/docs/
+/tests/
+
+# Log
+*.log
+
+# OS
+.DS_Store

@@ -12,11 +12,15 @@ src/legal_rag/
 ├── documents.py              # LegalDocument, LegalChunk
 ├── corpus_filter.py          # lọc văn bản liên quan tín dụng/ngân hàng
 ├── chunking.py                # chia chunk, giữ metadata trích dẫn
+├── text_fold.py              # bỏ dấu + đ->d cho retrieval
+├── legal_structure.py        # text -> Điều / Khoản / điểm
+├── eval/                     # Precision@k, Recall@k, MRR
 ├── crawler/                   # crawler pháp luật tự viết
 ├── ingestion/
 │   └── json_loader.py         # nạp export JSON/JSONL từ crawler
 ├── retrieval/
-│   └── simple_retriever.py    # retriever lexical nhẹ (đang là TF-IDF tạm, xem spec để nâng BM25)
+│   ├── simple_retriever.py    # baseline TF-IDF (giữ lại để so sánh)
+│   └── bm25_retriever.py      # Okapi BM25 tự viết, trả về điểm + lọc theo metadata
 └── rag_pipeline.py            # lắp prompt truy vấn hỏi-đáp
 ```
 

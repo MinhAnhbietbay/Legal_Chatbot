@@ -21,7 +21,6 @@ if str(PROJECT_ROOT) not in sys.path:
 from src.legal_rag.chunking import chunk_documents
 from src.legal_rag.corpus_filter import filter_banking_docs
 from src.legal_rag.ingestion.json_loader import load_legal_documents
-from src.legal_rag.cleaning import strip_page_chrome
 
 
 def parse_args() -> argparse.Namespace:
@@ -37,11 +36,12 @@ def main() -> None:
     args = parse_args()
     docs = load_legal_documents(args.input)
     banking_docs = filter_banking_docs(docs)
-    
-    for doc in banking_docs:
-        doc.content = strip_page_chrome(doc.content, title=doc.title)
 
-    chunks = chunk_documents(banking_docs, chunk_size=args.chunk_size, overlap=args.overlap)
+    # KHÔNG gọi strip_page_chrome() ở đây nữa: nó nén cả '\n', mà chunking cần đầu dòng
+    # để neo Điều/Khoản. chunk_document() tự gọi strip_page_chrome_lines() bên trong.
+    chunks = chunk_documents(
+        banking_docs, max_chunk_chars=args.chunk_size, chunk_overlap=args.overlap
+    )
 
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)

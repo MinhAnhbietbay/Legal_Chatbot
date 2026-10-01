@@ -121,17 +121,22 @@ def _khoan_chunks(
         # dung mở đầu của Khoản.
         preamble_match = _DIEM_START_RE.search(khoan.body)
         preamble = khoan.body[: preamble_match.start()].strip() if preamble_match else ""
-        pieces = [
-            (
-                "\n".join(
-                    part
-                    for part in (context, preamble, f"Khoản {khoan.number}. {diem.label}) {diem.body}")
-                    if part
-                ).strip(),
-                diem.label,
+        prefix = "\n".join(part for part in (context, preamble) if part)
+        pieces = []
+        for diem in khoan.diem:
+            header = f"Khoản {khoan.number}. {diem.label}) "
+            # Spec §2.1: "cắt tiếp theo điểm, có overlap" — nếu bản thân MỘT điểm (sau khi
+            # legal_structure giữ đủ nhiều dòng) đã dài hơn max_chunk_chars thì phải cắt
+            # tiếp bằng split_text(), không được ghép thẳng ra một chunk quá khổ.
+            budget = max(max_chunk_chars - len(prefix) - len(header) - 1, 200)
+            diem_pieces = (
+                [diem.body]
+                if len(diem.body) <= budget
+                else split_text(diem.body, chunk_size=budget, overlap=chunk_overlap)
             )
-            for diem in khoan.diem
-        ]
+            for piece in diem_pieces:
+                content = "\n".join(part for part in (prefix, f"{header}{piece}") if part).strip()
+                pieces.append((content, diem.label))
 
     chunks: list[LegalChunk] = []
     for offset, (content, diem_label) in enumerate(pieces):

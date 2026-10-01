@@ -98,3 +98,36 @@ def looks_like_noise_document(title: str, source_url: str, content: str) -> bool
     if "nghien-cuu-trao-doi" in haystack and "so ky hieu" not in haystack:
         return True
     return False
+
+
+def strip_page_chrome_lines(text: str, title: str = "") -> str:
+    """Như `strip_page_chrome()` nhưng GIỮ ký tự xuống dòng.
+
+    `strip_page_chrome()` nén mọi khoảng trắng kể cả `\\n`, nên text sau nó không còn
+    đầu dòng nào. `legal_structure.parse_articles()` neo Khoản và điểm theo đầu dòng,
+    nên nó cần bản này. Hàm cũ được giữ nguyên vì `corpus_filter.py` và
+    `scripts/legalrag_prepare_corpus.py` đang dùng.
+    """
+    # Nén khoảng trắng trong từng dòng, không nén giữa các dòng.
+    lines = [re.sub(r"[ \t\r\f\v]+", " ", line).strip() for line in text.splitlines()]
+    cleaned = "\n".join(line for line in lines if line)
+    if not cleaned:
+        return ""
+
+    title_idx = _last_title_index(cleaned, title)
+    marker_idx = _first_marker_index(cleaned, START_MARKERS)
+    start_candidates = [idx for idx in (title_idx, marker_idx) if idx is not None]
+    if start_candidates:
+        cleaned = cleaned[min(start_candidates) :]
+
+    end_idx = _first_marker_index(cleaned, END_MARKERS)
+    if end_idx and end_idx > 300:
+        cleaned = cleaned[:end_idx]
+
+    cleaned = WEATHER_PATTERN.sub(" ", cleaned)
+    for phrase in NOISE_PHRASES:
+        cleaned = re.sub(re.escape(phrase), " ", cleaned, flags=re.IGNORECASE)
+
+    # Dọn lại lần cuối: bỏ dòng rỗng do việc xoá nhiễu tạo ra.
+    lines = [re.sub(r"[ \t]+", " ", line).strip() for line in cleaned.splitlines()]
+    return "\n".join(line for line in lines if line)

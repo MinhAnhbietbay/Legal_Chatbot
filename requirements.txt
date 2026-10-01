@@ -2,6 +2,7 @@
 # không có dependency ngoài nào ở thời điểm import từ DataMining (2026-09-30).
 
 pytest
+pyyaml
 
 # Sẽ thêm khi implementation plan yêu cầu, ví dụ:
 # pypdf / pdfplumber   — trích text PDF cho crawler (xem docs/specs/2026-08-19-...)

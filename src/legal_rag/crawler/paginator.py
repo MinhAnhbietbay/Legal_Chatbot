@@ -110,6 +110,7 @@ class AspNetGridPaginator:
                     "Dừng phân trang.",
                     next_page,
                 )
+                yield result.body
                 return
 
             html = result.body

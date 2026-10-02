@@ -4,7 +4,8 @@ Unlike the generic `LegalHTMLParser` used for other domains, this reads the
 site's actual structured metadata table (Số ký hiệu / Ngày ban hành / Cơ
 quan ban hành / ...) instead of relying on <meta> og-tags, which these pages
 don't have. Most documents' real text lives only in a linked PDF attachment,
-not in this HTML — see pdf_extract.py.
+not in this HTML — see pdf_extract.py. For documents without a PDF attachment
+or carrying embedded text, `extract_body_text` extracts the inline HTML body.
 """
 
 from __future__ import annotations
@@ -93,6 +94,28 @@ def parse_detail_page(html: str) -> ChinhphuDocMeta:
             setattr(meta, field_name, _clean_value(match.group("value")))
     meta.pdf_urls = list(dict.fromkeys(_PDF_PATTERN.findall(html)))
     return meta
+
+
+def extract_body_text(html: str) -> str:
+    """Extract the document's own legal text when chinhphu.vn embeds it directly in the
+    detail page instead of only linking a PDF (e.g. documents with no PDF attachment at
+    all, like Luật 47/2010/QH12). The site nests a full sub-document —
+    <div style="all: initial"><html>...<body>...</body></html></div> — right before the
+    <div class="Content"> metadata table this module's parse_detail_page() already reads.
+    For documents whose real text lives in a PDF instead, this same region exists but
+    strips down to empty text, so merging it in is safe either way — see the module
+    docstring's note on why `content` merges this with PDF text.
+    """
+    match = re.search(
+        r'<div style="all: initial">(.*?)</div>\s*</div>\s*<div[^>]*class="Content"',
+        html,
+        re.S,
+    )
+    if not match:
+        return ""
+    text = re.sub(r"<[^>]+>", " ", match.group(1))
+    text = html_lib.unescape(text)
+    return re.sub(r"\s+", " ", text).strip()
 
 
 def select_primary_pdf_url(pdf_urls: list[str]) -> str | None:

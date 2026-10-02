@@ -16,6 +16,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from src.legal_rag.crawler.chinhphu_parser import (
+    extract_body_text,
     parse_category_names,
     parse_detail_page,
     parse_listing_rows,
@@ -175,21 +176,24 @@ class ChinhphuCrawler:
                             continue
 
                         meta = parse_detail_page(detail.body)
+                        html_text = extract_body_text(detail.body)
                         pdf_url = select_primary_pdf_url(meta.pdf_urls)
-                        content = ""
+                        pdf_text = ""
                         if pdf_url:
                             try:
                                 pdf_bytes = self.client.fetch_bytes(pdf_url)
-                                content = extract_pdf_text(pdf_bytes)
+                                pdf_text = extract_pdf_text(pdf_bytes)
                             except FetchError:
-                                content = ""
-                            if not content:
+                                pdf_text = ""
+                            if not pdf_text:
                                 empty_pdf_count += 1
                                 logger.warning(
                                     "PDF rỗng hoặc bản scan (không có text layer) cho văn bản số ký hiệu=%s, URL=%s",
                                     meta.doc_number or row.doc_code,
                                     row.detail_url,
                                 )
+
+                        content = "\n\n".join(part for part in (html_text, pdf_text) if part)
 
                         page_blob = f"{meta.title}\n{content}"
                         if len(content) < self.config.min_text_chars:

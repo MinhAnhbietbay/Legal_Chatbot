@@ -3,6 +3,7 @@
 
 pytest
 pyyaml
+pypdf
 
 # Sẽ thêm khi implementation plan yêu cầu, ví dụ:
 # pypdf / pdfplumber   — trích text PDF cho crawler (xem docs/specs/2026-08-19-...)
